@@ -51,7 +51,7 @@ jobs:
 
           - name: Reinstall postgres 14
             run: |
-                sudo apt purge libpq-dev postgresql-*
+                sudo apt purge libpq5 libpq-dev postgresql-*
                 sudo apt install -y postgresql-14 postgresql-client-14 postgresql-server-dev-14
 
           - name: Setup ccache
