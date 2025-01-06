@@ -30,24 +30,11 @@ components_manager:
         grpc-client-logging:
         grpc-client-deadline-propagation:
 
-        handler-hello:
-
-        hello-client:
-            endpoint: $hello-endpoint
-
-        grpc-server:
-            port: 8081
-            service-defaults:
-                middlewares:
-                  - grpc-server-logging
-                  - grpc-server-deadline-propagation
-                  - grpc-server-congestion-control
-                task-processor: main-task-processor
-
         congestion-control:
-        grpc-server-logging:
-        grpc-server-deadline-propagation:
-        grpc-server-congestion-control:
+
+        secdist: {}
+        default-secdist-provider:
+            config: $secdist-path
 
         server:
             listener:                 # configuring the main listening socket...
@@ -90,13 +77,24 @@ components_manager:
             throttling_enabled: false
             url_trailing_slash: strict-match
 
-        postgres-db-1:
-            dbconnection: $dbconnection
-            dbconnection#env: DB_CONNECTION
-            blocking_task_processor: fs-task-processor
-            dns_resolver: async
-            sync-start: true
-            connlimit_mode: manual
+        component-authentication:
+
+        client-user-service:
+            endpoint: $client-user-service-endpoint
+            deadline: $client-user-service-deadline
+
+        component-token:
+            access_token_ttl: $access-token-ttl
+
+        handler-authorization-v1-signup:
+            path: /v1/auth/signup
+            method: POST
+            task_processor: main-task-processor
+        
+        handler-authorization-v1-signin:
+            path: /v1/auth/signin
+            method: POST
+            task_processor: main-task-processor
 
         dns-client:
             fs-task-processor: fs-task-processor

@@ -29,20 +29,20 @@ build_release/CMakeCache.txt: cmake-release
 # Build using cmake
 .PHONY: build-debug build-release
 build-debug build-release: build-%: build_%/CMakeCache.txt
-	cmake --build build_$* -j $(NPROCS) --target pg_grpc_service_template
+	cmake --build build_$* -j $(NPROCS) --target authorization
 
 # Test
 .PHONY: test-debug test-release
 test-debug test-release: test-%: build-%
-	cmake --build build_$* -j $(NPROCS) --target pg_grpc_service_template_unittest
-	cmake --build build_$* -j $(NPROCS) --target pg_grpc_service_template_benchmark
+	cmake --build build_$* -j $(NPROCS) --target authorization_unittest
+	cmake --build build_$* -j $(NPROCS) --target authorization_benchmark
 	cd build_$* && ((test -t 1 && GTEST_COLOR=1 PYTEST_ADDOPTS="--color=yes" ctest -V) || ctest -V)
 	pycodestyle tests
 
 # Start the service (via testsuite service runner)
 .PHONY: start-debug start-release
 start-debug start-release: start-%: build-%
-	cmake --build build_$* -v --target start-pg_grpc_service_template
+	cmake --build build_$* -v --target start-authorization
 
 .PHONY: service-start-debug service-start-release
 service-start-debug service-start-release: service-start-%: start-%
@@ -61,7 +61,7 @@ dist-clean:
 # Install
 .PHONY: install-debug install-release
 install-debug install-release: install-%: build-%
-	cmake --install build_$* -v --component pg_grpc_service_template
+	cmake --install build_$* -v --component authorization
 
 .PHONY: install
 install: install-release
@@ -78,14 +78,14 @@ export DB_CONNECTION := postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@servi
 # Internal hidden targets that are used only in docker environment
 --in-docker-start-debug --in-docker-start-release: --in-docker-start-%: install-%
 	psql ${DB_CONNECTION} -f ./postgresql/data/initial_data.sql
-	/home/user/.local/bin/pg_grpc_service_template \
-		--config /home/user/.local/etc/pg_grpc_service_template/static_config.yaml \
-		--config_vars /home/user/.local/etc/pg_grpc_service_template/config_vars.docker.yaml
+	/home/user/.local/bin/authorization \
+		--config /home/user/.local/etc/authorization/static_config.yaml \
+		--config_vars /home/user/.local/etc/authorization/config_vars.docker.yaml
 
 # Build and run service in docker environment
 .PHONY: docker-start-debug docker-start-release
 docker-start-debug docker-start-release: docker-start-%:
-	$(DOCKER_COMPOSE) run -p 8080:8080 -p 8081:8081 --rm pg_grpc_service_template-container make -- --in-docker-start-$*
+	$(DOCKER_COMPOSE) run -p 8080:8080 -p 8081:8081 --rm authorization-container make -- --in-docker-start-$*
 
 .PHONY: docker-start-service-debug docker-start-service-release
 docker-start-service-debug docker-start-service-release: docker-start-service-%: docker-start-%
@@ -93,7 +93,7 @@ docker-start-service-debug docker-start-service-release: docker-start-service-%:
 # Start targets makefile in docker environment
 .PHONY: docker-cmake-debug docker-build-debug docker-test-debug docker-clean-debug docker-install-debug docker-cmake-release docker-build-release docker-test-release docker-clean-release docker-install-release
 docker-cmake-debug docker-build-debug docker-test-debug docker-clean-debug docker-install-debug docker-cmake-release docker-build-release docker-test-release docker-clean-release docker-install-release: docker-%:
-	$(DOCKER_COMPOSE) run --rm pg_grpc_service_template-container make $*
+	$(DOCKER_COMPOSE) run --rm authorization-container make $*
 
 # Stop docker container and remove PG data
 .PHONY: docker-clean-data

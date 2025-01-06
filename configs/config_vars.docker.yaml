@@ -8,4 +8,8 @@ is-testing: false
 server-port: 8080
 server-grpc-port: 8081
 
-hello-endpoint: '[::1]:8081'
+secdist-path: /secure_data.json
+
+client-user-service-endpoint: 'user_service:8081'
+client-user-service-deadline: '2s'
+access-token-ttl: '1h'
